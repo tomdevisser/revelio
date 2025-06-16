@@ -1,0 +1,43 @@
+#revelio-post-meta-box {
+  .inside {
+    margin: 0;
+    max-width: 100%;
+    overflow-x: scroll;
+    padding: 0;
+  }
+
+  .revelio-post-meta-table {
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+
+    tr {
+      &:last-child {
+        td,
+        th {
+          border-bottom: none !important;
+        }
+      }
+
+      th {
+        border-right: 1px solid #ddd;
+        width: fit-content;
+      }
+  
+      th,
+      td {
+        border-bottom: 1px solid #ddd !important;
+        padding: 0.5rem;
+        text-align: left;
+  
+        p,
+        code {
+          font-size: 0.75rem;
+          margin: 0;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+
+}
