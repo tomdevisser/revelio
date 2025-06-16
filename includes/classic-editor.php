@@ -6,6 +6,8 @@
  * @since   1.0.0
  */
 
+defined( 'ABSPATH' ) or die;
+
 /**
  * Enqueue styles and scripts for the classic editor.
  *
@@ -16,12 +18,12 @@
 function revelio_enqueue_admin_styles() {
 	wp_enqueue_style(
 		'revelio-styles',
-		REVELIO_PLUGIN_URL . 'assets/classic-editor.css',
+		REVELIO_PLUGIN_URL . 'build/classic-editor.css',
 		array(),
 		REVELIO_VERSION
 	);
 
-	wp_enqueue_script_module( 'revelio-js', REVELIO_PLUGIN_URL . 'assets/classic-editor.js', array( 'wp-i18n' ), REVELIO_VERSION );
+	wp_enqueue_script_module( 'revelio-js', REVELIO_PLUGIN_URL . 'build/classic-editor.js', array( 'wp-i18n' ), REVELIO_VERSION );
 	wp_set_script_translations( 'revelio-js', 'revelio' );
 }
 add_action( 'admin_enqueue_scripts', 'revelio_enqueue_admin_styles' );
@@ -34,19 +36,38 @@ add_action( 'admin_enqueue_scripts', 'revelio_enqueue_admin_styles' );
  * @return void
  */
 function revelio_post_meta_box() {
-	if ( current_user_can( 'manage_options' ) ) {
-		add_meta_box(
-			'revelio-post-meta-box',
-			__( 'Revelio Post Meta', 'revelio' ),
-			'revelio_render_meta_box_cb',
-			'post',
-			'side',
-			'core',
-			array(
-				'__back_compat_meta_box' => true,
-			)
-		);
+	/**
+	 * Role-based access control for classic editor.
+	 */
+	$options       = get_option( 'revelio_settings', array() );
+	$allowed_roles = isset( $options['allowed_roles'] ) ? $options['allowed_roles'] : array();
+	$current_user  = wp_get_current_user();
+
+	if ( empty( $allowed_roles ) ) {
+		/**
+		 * Fallback to manage_options if no roles selected.
+		 */
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+	} elseif ( ! array_intersect( $allowed_roles, $current_user->roles ) ) {
+		/**
+		 * User role not allowed.
+		 */
+		return;
 	}
+
+	add_meta_box(
+		'revelio-post-meta-box',
+		__( 'Revelio Post Meta', 'revelio' ),
+		'revelio_render_meta_box_cb',
+		get_post_types(),
+		'side',
+		'core',
+		array(
+			'__back_compat_meta_box' => true,
+		)
+	);
 }
 add_action( 'add_meta_boxes', 'revelio_post_meta_box' );
 
@@ -59,47 +80,65 @@ add_action( 'add_meta_boxes', 'revelio_post_meta_box' );
  * @return void
  */
 function revelio_render_meta_box_cb( $post ) {
-    $meta = get_post_meta( $post->ID );
+	$meta = get_post_meta( $post->ID );
 
-    if ( empty( $meta ) ) {
-			echo '<p>' . __( 'No post meta found.', 'revelio' ) . '</p>';
-			return;
-    }
+	/**
+	 * Fetch excluded keys from plugin settings.
+	 */
+	$options      = get_option( 'revelio_settings', array() );
+	$excluded_raw = isset( $options['excluded_meta'] ) ? $options['excluded_meta'] : '';
+	$exclude_keys = array_filter( array_map( 'trim', explode( ',', $excluded_raw ) ) );
 
-    ob_start();
+	/**
+	 * Remove excluded keys.
+	 */
+	if ( ! empty( $exclude_keys ) ) {
+		foreach ( $exclude_keys as $key ) {
+			if ( isset( $meta[ $key ] ) ) {
+				unset( $meta[ $key ] );
+			}
+		}
+	}
+
+	if ( empty( $meta ) ) {
+		echo '<p>' . __( 'No post meta found.', 'revelio' ) . '</p>';
+		return;
+	}
+
+	ob_start();
+	?>
+
+	<table class="revelio-post-meta-table">
+	<?php
+	foreach ( $meta as $key => $values ) {
 		?>
-
-    <table class="revelio-post-meta-table">
-		<?php
-    foreach ( $meta as $key => $values ) {
-			?>
-			<tr>
-				<th scope="row">
-					<code><?php echo esc_html( $key ); ?></code>
-				</th>
-				<td>
-					<?php
-					foreach ( $values as $value ) {
-						?>
-						<p><?php echo esc_html( $value ); ?></p>
-						<?php
-					}
+		<tr>
+			<th scope="row">
+				<code><?php echo esc_html( $key ); ?></code>
+			</th>
+			<td>
+				<?php
+				foreach ( $values as $value ) {
 					?>
-				</td>
-			</tr>
-			<?php
-    }
-		?>
-    </table>
-
+					<p><?php echo esc_html( $value ); ?></p>
+					<?php
+				}
+				?>
+			</td>
+		</tr>
 		<?php
-    $markup = ob_get_clean();
+	}
+	?>
+	</table>
 
-    /**
-     * Filter the Revelio meta box markup.
-     *
-     * @param string  $markup The meta box HTML.
-     * @param WP_Post $post   The current post object.
-     */
-    echo apply_filters( 'revelio_meta_box_markup', $markup, $post );
+	<?php
+	$markup = ob_get_clean();
+
+	/**
+	 * Filter the Revelio meta box markup.
+	 *
+	 * @param string  $markup The meta box HTML.
+	 * @param WP_Post $post   The current post object.
+	 */
+	echo apply_filters( 'revelio_meta_box_markup', $markup, $post );
 }

@@ -8,6 +8,6 @@ module.exports = {
     "classic-editor": path.resolve(__dirname, "source/js", "classic-editor.js"),
   },
   output: {
-    path: path.resolve(__dirname, "assets"),
+    path: path.resolve(__dirname, "build"),
   },
 };
