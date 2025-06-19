@@ -16,9 +16,9 @@ defined( 'ABSPATH' ) or die;
  * @return void
  */
 function revelio_enqueue_admin_scripts() {
-  wp_enqueue_style( 'revelio-css', REVELIO_PLUGIN_URL . 'build/block-editor.css', array( 'wp-editor' ), REVELIO_VERSION );
+  wp_enqueue_style( 'revelio-css', REVELIO_PLUGIN_URL . 'build/block-editor.css', array(), REVELIO_VERSION );
 
-  wp_enqueue_script( 'revelio-js', REVELIO_PLUGIN_URL . 'build/block-editor.js', array( 'wp-plugins', 'wp-editor', 'wp-icons', 'wp-i18n' ), REVELIO_VERSION );
+  wp_enqueue_script_module( 'revelio-js', REVELIO_PLUGIN_URL . 'build/block-editor.js', array( 'wp-plugins', 'wp-editor', 'wp-icons', 'wp-i18n' ), REVELIO_VERSION );
 	wp_set_script_translations( 'revelio-js', 'revelio' );
 }
 add_action( 'enqueue_block_editor_assets', 'revelio_enqueue_admin_scripts' );
