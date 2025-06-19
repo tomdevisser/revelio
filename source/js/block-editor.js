@@ -1,4 +1,4 @@
-import { PluginSidebar } from "@wordpress/edit-post";
+import { PluginSidebar } from "@wordpress/editor";
 import { PanelBody } from "@wordpress/components";
 import { registerPlugin } from "@wordpress/plugins";
 import { blockMeta } from "@wordpress/icons";

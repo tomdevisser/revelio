@@ -8,11 +8,14 @@
     "build": "wp-scripts build",
     "start": "wp-scripts start"
   },
-  "devDependencies": {
-    "@wordpress/icons": "^10.25.0",
-    "@wordpress/scripts": "^25.5.1",
+  "dependencies": {
     "@wordpress/edit-post": "^8.25.0",
+    "@wordpress/editor": "^14.25.0",
     "@wordpress/element": "^6.25.0",
+    "@wordpress/icons": "^10.25.0",
     "@wordpress/plugins": "^7.25.0"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^25.5.1"
   }
 }
